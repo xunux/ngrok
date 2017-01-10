@@ -57,7 +57,8 @@ type ClientModel struct {
 func newClientModel(config *Configuration, ctl mvc.Controller) *ClientModel {
 	protoMap := make(map[string]proto.Protocol)
 	protoMap["http"] = proto.NewHttp()
-	protoMap["https"] = protoMap["http"]
+	// protoMap["https"] = protoMap["http"]
+	protoMap["https"] = proto.NewTcp()
 	protoMap["tcp"] = proto.NewTcp()
 	protocols := []proto.Protocol{protoMap["http"], protoMap["tcp"]}
 
