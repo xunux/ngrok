@@ -136,9 +136,11 @@ func Main() {
 	}
 
 	// listen for https
-	if opts.httpsAddr != "" {
-		listeners["https"] = startHttpListener(opts.httpsAddr, tlsConfig)
-	}
+	/*
+		if opts.httpsAddr != "" {
+			listeners["https"] = startHttpListener(opts.httpsAddr, tlsConfig)
+		}
+	*/
 
 	// ngrok clients
 	tunnelListener(opts.tunnelAddr, tlsConfig)

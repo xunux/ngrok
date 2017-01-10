@@ -104,6 +104,29 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 
 	proto := t.req.Protocol
 	switch proto {
+	case "https":
+		bindHTTPS := func() error {
+			port := 443
+			if t.listener, err = net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP("0.0.0.0"), Port: port}); err != nil {
+				err = t.ctl.conn.Error("Error binding HTTPS listener: %v", err)
+				return err
+			}
+
+			t.url = fmt.Sprintf("https://%s", opts.domain)
+
+			if err = tunnelRegistry.RegisterAndCache(t.url, t); err != nil {
+				t.listener.Close()
+				err = fmt.Errorf("HTTPS listener bound, but failed to register %s", t.url)
+				return err
+			}
+			go t.listenTcp(t.listener)
+			return nil
+		}
+		if bindHTTPS() != nil {
+			t.ctl.conn.Error("Failed to bind to HTTPS 443 port",
+				err)
+		}
+
 	case "tcp":
 		bindTcp := func(port int) error {
 			if t.listener, err = net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP("0.0.0.0"), Port: port}); err != nil {
@@ -158,7 +181,7 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 		bindTcp(0)
 		return
 
-	case "http", "https":
+	case "http":
 		l, ok := listeners[proto]
 		if !ok {
 			err = fmt.Errorf("Not listening for %s connections", proto)
